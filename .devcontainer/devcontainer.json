@@ -2,6 +2,13 @@
     "name": "Research Workspace",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
     "customizations": {
+        "codespaces": {
+            "repositories": {
+                "Bilingual-Metrics-Analysis-Team/*":{
+                    "permissions": "write-all"
+                }
+            }
+        },
         "vscode": {
             "extensions": [
                 "ms-python.python",
