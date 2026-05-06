@@ -1,0 +1,12 @@
+[submodule "code-switch-resource"]
+	path = code-switch-resource
+	url = https://github.com/Bilingual-Metrics-Analyses-Team/code-switch-resource.git
+[submodule "codeswitch-annotation"]
+	path = codeswitch-annotation
+	url = https://github.com/Bilingual-Metrics-Analyses-Team/codeswitch-annotation.git
+[submodule "Scripts"]
+	path = Scripts
+	url = https://github.com/Bilingual-Metrics-Analyses-Team/Scripts.git
+[submodule "neural-network-language-identification"]
+	path = neural-network-language-identification
+	url = https://github.com/Bilingual-Metrics-Analyses-Team/neural-network-language-identification.git

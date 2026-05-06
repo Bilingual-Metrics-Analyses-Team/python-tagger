@@ -10,5 +10,4 @@
             ]
         }
     },
-    "postCreateCommand": "git clone https://github.com/Bilingual-Metrics-Analyses-Team/code-switch-resource.git && git clone https://github.com/Bilingual-Metrics-Analyses-Team/codeswitch-annotation.git && git clone https://github.com/Bilingual-Metrics-Analyses-Team/Scripts.git && git clone https://github.com/Bilingual-Metrics-Analyses-Team/neural-network-language-identification.git && pip install -e ./repo-b && pip install -e ./repo-c"
-}
+"postCreateCommand": "git submodule update --init --recursive && pip install -e ./code-switch-resource && pip install -e ./codeswitch-annotation"}
