@@ -198,8 +198,8 @@ class Evaluator:
 
             # Record probabilities
             if lang in self.local_config["lang_set"]:
-                """"hmm_prob = round(hmm.transi_matrix[prev_lang][lang], 2)"""
-                
+                """hmm_prob = round(hmm.transi_matrix[prev_lang][lang], 2)"""
+                """If in the transition matrix, return the transition probability, else return tiny epsilon"""
                 hmm_prob = round(hmm.transi_matrix[prev_lang].get(lang, 1e-10), 2)
                 lang1_prob = round(self.cs_model.prob(self.tags[0], word), 2)
                 lang2_prob = round(self.cs_model.prob(self.tags[1], word), 2)

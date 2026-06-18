@@ -92,13 +92,8 @@ class HiddenMarkovModel:
                 new state.
         """
         """return self.transi_matrix[ctx][tag]"""
-        
-        if ctx in self.transi_matrix:
-            """If it does, return the transition probability, or a tiny epsilon if unseen"""
-            return self.transi_matrix[ctx].get(tag, 1e-10)
-    
-        """If the context itself is entirely unknown, return the tiny epsilon"""
-        return 1e-10
+        """If in the transition matrix, return the transition probability, else return tiny epsilon"""
+        return self.transi_matrix[ctx].get(tag, 1e-10)
 
     def viterbi(self):
         """Runs the viterbi algorithm on the setup of the hidden Markov model.
