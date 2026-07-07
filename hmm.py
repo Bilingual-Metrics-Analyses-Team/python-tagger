@@ -91,7 +91,9 @@ class HiddenMarkovModel:
             float: probability of transitioning from the given state to the
                 new state.
         """
-        return self.transi_matrix[ctx][tag]
+        """return self.transi_matrix[ctx][tag]"""
+        """If in the transition matrix, return the transition probability, else return tiny epsilon"""
+        return self.transi_matrix[ctx].get(tag, 1e-10)
 
     def viterbi(self):
         """Runs the viterbi algorithm on the setup of the hidden Markov model.
