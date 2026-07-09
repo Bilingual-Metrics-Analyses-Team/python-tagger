@@ -188,12 +188,12 @@ class Evaluator:
             if index < len(lang1_tags):
                 lang1_tag = lang1_tags[index][1]
             else:
-                lang1_tag = "O"
+                lang1_tag = lang1_tags[index-1][1]
 
             if index < len(lang2_tags):
                 lang2_tag = lang2_tags[index][1]
             else:
-                lang2_tag = "O"
+                lang2_tag = lang2_tags[index-1][1]
 
             if lang == "Punct":
                 lang1_tag = "O"
