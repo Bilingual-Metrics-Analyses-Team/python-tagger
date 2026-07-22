@@ -151,6 +151,8 @@ class Evaluator:
                 as well as details regarding the list itself.
         """
         # Why is this generated here?
+        print("Entered tag_list", flush=True)
+        print(__file__, flush=True)
         hmm = HiddenMarkovModel(word_list, self.tags, self.transi_matrix,
                                 self.cs_model)
         hmmtags = hmm.gen_tags()
@@ -180,19 +182,72 @@ class Evaluator:
             index = k % chunk_size
 
             if index == 0:
-                lang1_tags = self.lang1_tagger.tag(words[k:k+chunk_size])
-                lang2_tags = self.lang2_tagger.tag(words[k:k+chunk_size])
+                print(f"New chunk starting at k={k}", flush=True)
+                chunk = words[k:k+chunk_size]
+                print(f"Chunk length: {len(chunk)}", flush=True)
+
+                lang1_tags = self.lang1_tagger.tag(chunk)
+                print(f"Lang1 returned: {len(lang1_tags)}", flush=True)
+                for i, (input_word, returned) in enumerate(zip(chunk, lang1_tags)):
+                    if input_word != returned[0]:
+                        print(f"\nToken mismatch at chunk offset {i}")
+                        print(f"Input   : {repr(input_word)}")
+                        print(f"Returned: {repr(returned[0])}")
+                        break
+
+                lang2_tags = self.lang2_tagger.tag(chunk)
+                print(f"Lang2 returned: {len(lang2_tags)}", flush=True)
+                if len(lang1_tags) != len(chunk):
+                    print("\n*********Lang1 mismatch*********")
+                    print(f"Expected: {len(chunk)}")
+                    print(f"Returned: {len(lang1_tags)}")
+                    print("Chunk:")
+                    print(chunk)
+                    print("Returned tags:")
+                    print(lang1_tags)
+
+                if len(lang2_tags) != len(chunk):
+                    print("\n*********Lang2 mismatch*********")
+                    print(f"Expected: {len(chunk)}")
+                    print(f"Returned: {len(lang2_tags)}")
+                    print("Chunk:")
+                    print(chunk)
+                    print("Returned tags:")
+                    print(lang2_tags)
+
+            # if index == 0:
+            #     lang1_tags = self.lang1_tagger.tag(words[k:k+chunk_size])
+            #     lang2_tags = self.lang2_tagger.tag(words[k:k+chunk_size])
 
             # lang1_tag = lang1_tags[index][1]
             # lang2_tag = lang2_tags[index][1]
+            # print(
+            #     f"k={k}, index={index}, "
+            #     f"len(lang1_tags)={len(lang1_tags)}, "
+            #     f"len(lang2_tags)={len(lang2_tags)}",
+            #     flush=True
+            # )
+
             if index < len(lang1_tags):
                 lang1_tag = lang1_tags[index][1]
             else:
+                print("\n*********Padding LANG1*********")
+                print(f"Current word: {word}")
+                print(f"Chunk: {chunk}")
+                print(f"Index: {index}")
+                print(
+                    f"Returned {len(lang1_tags)} tags for {len(chunk)} words")
                 lang1_tag = lang1_tags[index-1][1]
 
             if index < len(lang2_tags):
                 lang2_tag = lang2_tags[index][1]
             else:
+                print("\n*********Padding LANG2*********")
+                print(f"Current word: {word}")
+                print(f"Chunk: {chunk}")
+                print(f"Index: {index}")
+                print(
+                    f"Returned {len(lang2_tags)} tags for {len(chunk)} words")
                 lang2_tag = lang2_tags[index-1][1]
 
             if lang == "Punct":
@@ -288,8 +343,20 @@ class Evaluator:
             text, gold_tags = [], []
 
             # Get tokens and gold tags from gold standard
-            for x in lines:
+            # for x in lines:
+            #     columns = x.split(CONFIGS["gold_delimiter"])
+            #     text.append(columns[-2].strip())
+            #     gold_tags.append(columns[-1].strip())
+
+            for line_num, x in enumerate(lines, start=1):
                 columns = x.split(CONFIGS["gold_delimiter"])
+
+                if len(columns) < 2:
+                    print(f"\nBad line {line_num}:")
+                    print(repr(x))
+                    print(columns)
+                    continue
+
                 text.append(columns[-2].strip())
                 gold_tags.append(columns[-1].strip())
 
