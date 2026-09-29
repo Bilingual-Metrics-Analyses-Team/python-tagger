@@ -57,7 +57,7 @@ def get_transi_matrix(gold_tags, langs):
                 |   ->   |   ->   |
                 |  tag1  |  tag2  |
                 +-----------------+
-                
+
     Note that this is for two languages.
 
     However, it takes the log of the raw, overall probability of each switch to
@@ -198,7 +198,8 @@ class Evaluator:
 
             # Record probabilities
             if lang in self.local_config["lang_set"]:
-                hmm_prob = round(hmm.transi_matrix[prev_lang][lang], 2)
+                hmm_prob = round(hmm.transi_matrix.get(
+                    prev_lang, {}).get(lang, 1e-10), 2)
                 lang1_prob = round(self.cs_model.prob(self.tags[0], word), 2)
                 lang2_prob = round(self.cs_model.prob(self.tags[1], word), 2)
                 if lang == self.tags[0]:
@@ -276,14 +277,62 @@ class Evaluator:
             text, gold_tags = [], []
 
             # Get tokens and gold tags from gold standard
-            for x in lines:
-                columns = x.split(CONFIGS["gold_delimiter"])
-                text.append(columns[-2].strip())
-                gold_tags.append(columns[-1].strip())
+            # for x in lines:
+            #     columns = x.split(CONFIGS["gold_delimiter"])
+            #     text.append(columns[-2].strip())
+            #     gold_tags.append(columns[-1].strip())
+            # for line_num, x in enumerate(lines, start=1):
+            # print("gold delimiter =", repr(CONFIGS["gold_delimiter"]))
+            # columns = x.split(CONFIGS["gold_delimiter"])
+
+            # print("Delimiter:", repr(CONFIGS["gold_delimiter"]))
+            # print("Split result:", columns)
+            # print("Hardcoded split:", x.split(","))
+
+            # if len(columns) < 2:
+            #     print(f"\nBad line {line_num}:")
+            #     print(repr(x))
+            #     print(columns)
+            #     continue
+            for line_num, x in enumerate(lines, start=1):
+                line_str = x.strip()
+                if not line_str:
+                    continue
+                if CONFIGS["gold_delimiter"] in line_str:
+                    columns = x.split(CONFIGS["gold_delimiter"])
+                    word = columns[-2].strip()
+                    gold_tag = columns[-1].strip()
+                elif ',' in line_str:
+                    parts = line_str.rsplit(",", 1)
+                    word = parts[0].rstrip(",").strip()
+                    gold_tag = parts[1].strip()
+                elif '\t' in line_str:
+                    columns = line_str.split("\t")
+                    word = columns[-2].strip()
+                    gold_tag = columns[-1].strip()
+                else:
+                    continue
+
+                # text.append(columns[-2].strip())
+                # gold_tags.append(columns[-1].strip())
+                # word = columns[-2].strip()
+                # gold_tag = columns[-1].strip()
+                # word = columns[0].strip()
+                # gold_tag = columns[1].strip()
+
+                word = word.replace("...", " ")
+                word = word.replace("/", " ")
+
+                words = word.split()
+
+                for token in words:
+                    text.append(token)
+                    gold_tags.append(gold_tag)
 
             # Tag the text based on the provided models
             annotated_output = self.tag_list(text)
-            _, lang_tags, ne_tags, _, _, _, _  = map(list, zip(*annotated_output))
+            _, lang_tags, ne_tags, _, _, _, _ = map(
+                list, zip(*annotated_output))
 
             # Reset counters to 0, prepare for checking with the gold_standard
             lang_correct = lang_total = ne_correct = ne_total = 0
@@ -348,8 +397,10 @@ def main(local_config=None):
     tagset = list(local_config["lang_set"])
 
     # Process training corpora
-    lang1_data = split_words(open(local_config["lang1_train"], mode="r", encoding="utf8").read())
-    lang2_data = split_words(open(local_config["lang2_train"], mode="r", encoding="utf8").read())
+    lang1_data = split_words(
+        open(local_config["lang1_train"], mode="r", encoding="utf8").read())
+    lang2_data = split_words(
+        open(local_config["lang2_train"], mode="r", encoding="utf8").read())
 
     # Create language model of training corproa
     lang1_model = CNGram(tagset[0], lang1_data, n)
@@ -359,11 +410,14 @@ def main(local_config=None):
     # Extract tags from gold standard
     gold_standard = open(local_config["gold_path"], mode="r")
     gold_delimiter = local_config["gold_delimiter"]
-    gold_tags = [x.split(gold_delimiter)[-1].strip() for x in gold_standard.readlines()]
+    gold_tags = [x.split(gold_delimiter)[-1].strip()
+                 for x in gold_standard.readlines()]
 
     # Convert all tags to either lang1 or lang2 and remove others
-    gold_tags = [tagset[0] if x in local_config["lang1_other"] else x for x in gold_tags]
-    gold_tags = [tagset[1] if x in local_config["lang2_other"] else x for x in gold_tags]
+    gold_tags = [tagset[0] if x in local_config["lang1_other"]
+                 else x for x in gold_tags]
+    gold_tags = [tagset[1] if x in local_config["lang2_other"]
+                 else x for x in gold_tags]
     gold_tags = [x for x in gold_tags if x in tagset]
 
     # Compute prior based on gold standard
@@ -422,39 +476,39 @@ def parse_args():
 
     # Optionally override some config options with arguments
     parser = argparse.ArgumentParser(
-            description="Tag a mixed-language text by language")
+        description="Tag a mixed-language text by language")
 
     # Some optional arguments
     parser.add_argument(
-            "--ngram",
-            metavar="ngram",
-            type=int,
-            default=5,
-            help="size of character ngrams (Default: 5)")
+        "--ngram",
+        metavar="ngram",
+        type=int,
+        default=5,
+        help="size of character ngrams (Default: 5)")
     parser.add_argument(
-            "--tokenize",
-            action="store_true",
-            help="tokenize flag (Default: False)")
+        "--tokenize",
+        action="store_true",
+        help="tokenize flag (Default: False)")
     parser.add_argument(
-            "--header",
-            action="store_true",
-            help="header flag (Default: False)")
+        "--header",
+        action="store_true",
+        help="header flag (Default: False)")
     parser.add_argument(
-            "--gold-delimiter",
-            type=str,
-            default="\t",
-            help="delimiter for gold standard file (Default: tab)")
+        "--gold-delimiter",
+        type=str,
+        default="\t",
+        help="delimiter for gold standard file (Default: tab)")
     parser.add_argument(
-            "-v", "--verbose",
-            action="store_true",
-            help="verbose flag (Default: False)")
+        "-v", "--verbose",
+        action="store_true",
+        help="verbose flag (Default: False)")
 
     # Some positional arguments
     parser.add_argument(
-            "infile",
-            nargs="?",
-            type=str,
-            help="corpus file (Default: stdin)")
+        "infile",
+        nargs="?",
+        type=str,
+        help="corpus file (Default: stdin)")
 
     args = parser.parse_args()
 
@@ -485,5 +539,3 @@ if __name__ == "__main__":
         print(CONFIGS)
 
     main()
-
-
